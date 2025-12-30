@@ -268,7 +268,7 @@ const SchoolStructureManagement = () => {
       message: "Confirm removal of this section from campus master.",
       onConfirm: async () => {
         try {
-          await axiosInstance.delete(`/settings/sections/${id}`);
+          await axiosInstance.delete(ENDPOINTS.SETUP.SECTION_SINGLE(id));
           toast.success("Section removed");
           fetchSections(selectedCampus._id);
         } catch (err) {

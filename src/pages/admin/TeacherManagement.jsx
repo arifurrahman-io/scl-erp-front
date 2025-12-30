@@ -8,7 +8,6 @@ import { toast } from "react-hot-toast";
 import {
   GraduationCap,
   UserPlus,
-  Mail,
   MapPin,
   Edit3,
   Trash2,
@@ -27,25 +26,24 @@ const TeacherManagement = () => {
   const [editingTeacher, setEditingTeacher] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- 1. Fetch Dynamic Data ---
+  // --- 1. DATA FETCHING ---
 
-  // FIX: Added explicit guard to prevent calling just "/api" (404)
-  // Ensures endpoint is "/users" and only fires when academicYearId exists
-  const staffFetchUrl = currentAcademicYear?._id
-    ? `/users?roleGroup=ACADEMIC&academicYearId=${currentAcademicYear._id}`
-    : null;
+  // FIX: If academicYearId is not yet loaded from context, we fetch all academic staff
+  // without the year filter first so the table isn't empty on load.
+  const staffUrl = `/users?roleGroup=ACADEMIC${
+    currentAcademicYear?._id ? `&academicYearId=${currentAcademicYear._id}` : ""
+  }`;
+  const { data: staff, loading, refetch } = useFetch(staffUrl);
 
-  const { data: staff, loading, refetch } = useFetch(staffFetchUrl);
   const { data: campuses } = useFetch("/campuses");
 
-  // Fetch Master Structure for Lead Assignment dropdowns
-  const structureUrl =
-    activeCampus?._id && currentAcademicYear?._id
-      ? `/settings/master-structure?campusId=${activeCampus._id}&academicYearId=${currentAcademicYear._id}`
-      : null;
-
+  // Fetch structure only when campus is selected
+  const structureUrl = activeCampus?._id
+    ? `/settings/master-structure?campusId=${activeCampus._id}`
+    : null;
   const { data: masterStructure } = useFetch(structureUrl);
 
+  // Filter local state based on roles and search
   const teachers =
     staff?.filter(
       (user) =>
@@ -55,18 +53,7 @@ const TeacherManagement = () => {
 
   const getID = (data) => (data?._id ? data._id : data);
 
-  // --- 2. Handlers ---
-  const handleDelete = async (id) => {
-    if (!window.confirm("Permanent removal of this faculty member. Proceed?"))
-      return;
-    try {
-      await axiosInstance.delete(`/users/${id}`);
-      toast.success("Profile removed");
-      refetch();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Deletion failed");
-    }
-  };
+  // --- 2. HANDLERS ---
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -86,10 +73,10 @@ const TeacherManagement = () => {
     try {
       if (editingTeacher) {
         await axiosInstance.put(`/users/${editingTeacher._id}`, data);
-        toast.success("Teacher profile synchronized");
+        toast.success("Profile Synchronized");
       } else {
         await axiosInstance.post("/users/register", data);
-        toast.success("Teacher registered successfully");
+        toast.success("Teacher Registered");
       }
       setIsModalOpen(false);
       setEditingTeacher(null);
@@ -101,12 +88,23 @@ const TeacherManagement = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm("Permanent removal of faculty. Proceed?")) return;
+    try {
+      await axiosInstance.delete(`/users/${id}`);
+      toast.success("Profile removed");
+      refetch();
+    } catch (err) {
+      toast.error("Delete failed");
+    }
+  };
+
   const columns = [
     {
       header: "Teacher Profile",
       render: (row) => (
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black shadow-lg">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black shadow-lg shadow-indigo-100/50">
             {row.name[0]}
           </div>
           <div>
@@ -122,7 +120,7 @@ const TeacherManagement = () => {
       header: "Academic Scope",
       render: (row) => (
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
             <MapPin size={14} className="text-rose-400" />
             {row.assignedCampuses?.map((c) => c.name || c).join(", ") ||
               "Global"}
@@ -163,8 +161,7 @@ const TeacherManagement = () => {
 
   return (
     <div className="p-4 lg:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-      {/* Header Container */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-white p-8 rounded-[3rem] shadow-xl border border-slate-50">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-white p-6 rounded-[3rem] shadow-xl border border-slate-50">
         <div className="flex items-center gap-5">
           <div className="p-4 bg-indigo-600 rounded-[2rem] text-white shadow-xl shadow-indigo-100">
             <GraduationCap size={32} />
@@ -186,7 +183,7 @@ const TeacherManagement = () => {
             />
             <input
               type="text"
-              placeholder="Search by name..."
+              placeholder="Search faculty..."
               className="w-full pl-12 pr-6 py-3 bg-slate-50 border-none rounded-2xl outline-none font-semibold text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -197,10 +194,10 @@ const TeacherManagement = () => {
               setEditingTeacher(null);
               setIsModalOpen(true);
             }}
-            className="bg-indigo-600 rounded-2xl px-6 font-black shadow-xl"
+            className="bg-indigo-600 rounded-2xl px-6 font-black shadow-xl shadow-indigo-100"
           >
             <UserPlus size={18} />{" "}
-            <span className="hidden lg:inline">Add Teacher</span>
+            <span className="hidden lg:inline ml-2">Add Teacher</span>
           </Button>
         </div>
       </div>
@@ -209,28 +206,26 @@ const TeacherManagement = () => {
         <DataTable columns={columns} data={teachers} isLoading={loading} />
       </div>
 
-      {/* --- MODAL --- */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-3xl rounded-[3rem] shadow-2xl p-10 relative animate-in zoom-in duration-200 max-h-[95vh] overflow-y-auto">
+          <div className="bg-white w-full max-w-3xl rounded-[3rem] shadow-2xl p-10 relative animate-in zoom-in duration-200 max-h-[95vh] overflow-y-auto custom-scrollbar">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-8 right-8 text-slate-400 hover:text-rose-500"
             >
               <X size={24} />
             </button>
-
             <h2 className="text-2xl font-black text-slate-800 mb-8 flex items-center gap-3">
-              <Link2 className="text-indigo-600" />
+              <Link2 className="text-indigo-600" />{" "}
               {editingTeacher ? "Edit Faculty Profile" : "Register Faculty"}
             </h2>
 
             <form
               onSubmit={handleSubmit}
-              className="grid grid-cols-1 md:grid-cols-2 gap-8"
+              className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left"
             >
               <div className="space-y-4">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b pb-2">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2">
                   Identity
                 </h3>
                 <InputGroup
@@ -254,8 +249,8 @@ const TeacherManagement = () => {
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b pb-2">
-                  Responsibility
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2">
+                  Academic Responsibility
                 </h3>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 ml-2">
@@ -264,14 +259,14 @@ const TeacherManagement = () => {
                   <select
                     name="role"
                     defaultValue={editingTeacher?.role}
-                    className="w-full p-4 bg-slate-50 rounded-2xl outline-none font-bold text-sm"
+                    className="w-full p-4 bg-slate-50 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-indigo-100 transition-all"
                   >
-                    <option value="TEACHER">Subject Teacher</option>
+                    <option value="TEACHER">Academic Teacher</option>
                     <option value="CLASS_TEACHER">Class Teacher (Lead)</option>
                   </select>
                 </div>
 
-                <div className="p-4 bg-indigo-50/50 rounded-3xl border border-indigo-100 space-y-4">
+                <div className="p-5 bg-indigo-50/30 rounded-[2rem] border border-indigo-100/50 space-y-4">
                   <p className="text-[9px] font-black text-indigo-400 uppercase text-center tracking-widest">
                     Lead Assignment
                   </p>
@@ -306,9 +301,9 @@ const TeacherManagement = () => {
 
               <div className="md:col-span-2 space-y-3">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
-                  Campus Rights
+                  Branch Permissions
                 </label>
-                <div className="flex flex-wrap gap-3 bg-slate-50 p-6 rounded-[2rem]">
+                <div className="flex flex-wrap gap-3 bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
                   {campuses?.map((c) => (
                     <label
                       key={c._id}
@@ -321,9 +316,9 @@ const TeacherManagement = () => {
                         defaultChecked={editingTeacher?.assignedCampuses?.some(
                           (curr) => getID(curr) === c._id
                         )}
-                        className="w-5 h-5 accent-indigo-600"
+                        className="w-5 h-5 accent-indigo-600 rounded"
                       />
-                      <span className="text-xs font-bold text-slate-700">
+                      <span className="text-xs font-black text-slate-600 uppercase tracking-tight">
                         {c.name}
                       </span>
                     </label>
@@ -331,17 +326,17 @@ const TeacherManagement = () => {
                 </div>
               </div>
 
-              <div className="md:col-span-2 flex gap-4 pt-4">
+              <div className="md:col-span-2 pt-4">
                 <Button
                   disabled={isSubmitting}
-                  className="flex-1 bg-indigo-600 text-white rounded-[2rem] py-5 font-black shadow-xl"
+                  className="w-full bg-indigo-600 text-white rounded-[2rem] py-5 font-black shadow-xl uppercase tracking-widest"
                 >
                   {isSubmitting ? (
                     <Loader2 className="animate-spin mx-auto" />
                   ) : editingTeacher ? (
                     "Synchronize Changes"
                   ) : (
-                    "Register Faculty"
+                    "Create Profile"
                   )}
                 </Button>
               </div>
@@ -365,22 +360,6 @@ const InputGroup = ({ label, name, type = "text", defValue }) => (
       defaultValue={defValue}
       className="w-full p-4 bg-slate-50 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-indigo-100 transition-all"
     />
-  </div>
-);
-
-const StatusCard = ({ label, value, icon, color }) => (
-  <div className="bg-white p-6 rounded-[2.5rem] border border-slate-50 shadow-xl flex items-center gap-5 transition-transform hover:scale-[1.02]">
-    <div className={`p-4 rounded-2xl text-white ${color} shadow-lg`}>
-      {icon}
-    </div>
-    <div>
-      <p className="text-[10px] font-black text-slate-400 uppercase leading-none mb-1 tracking-tighter">
-        {label}
-      </p>
-      <h3 className="text-2xl font-black text-slate-800 tracking-tight">
-        {value}
-      </h3>
-    </div>
   </div>
 );
 

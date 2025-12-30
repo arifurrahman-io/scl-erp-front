@@ -1,86 +1,105 @@
-import { useFetch } from "../../hooks/useFetch";
-import { useAcademic } from "../../context/AcademicContext"; // Import Global Context
+import { useAcademic } from "../../context/AcademicContext";
 import EnrollmentChart from "../../components/charts/EnrollmentChart";
 import {
   Users,
-  School,
   CreditCard,
   Activity,
   TrendingUp,
   ArrowUpRight,
   Building2,
+  Calendar,
+  Layers,
 } from "lucide-react";
 
-const SuperAdminStats = () => {
-  // 1. Pull active context from Global State
+const SuperAdminStats = ({ stats, loading }) => {
   const { activeYear, activeCampus } = useAcademic();
 
-  // 2. Dynamic API endpoint: Filters by active session and branch
-  const fetchUrl = `/dashboard/super-admin-stats?academicYearId=${
-    activeYear?._id
-  }&campusId=${activeCampus?._id || ""}`;
-  const { data: stats, loading } = useFetch(fetchUrl);
-
+  // Integrated Card Configuration for High-Performance UI [cite: 2025-10-11]
   const cards = [
     {
       label: "Total Students",
-      value: stats?.totalStudents || 0,
-      subValue: "+12% from last term",
+      value: stats?.totalStudents?.toLocaleString() || "0",
+      subValue: stats?.studentGrowth || "+0% this session",
       icon: <Users size={24} />,
-      gradient: "from-blue-500 to-blue-600",
+      gradient: "from-blue-500 to-indigo-600",
       shadow: "shadow-blue-100",
     },
     {
-      label: "Active Campuses",
-      value: stats?.totalCampuses || 0,
-      subValue: "Across 3 Districts",
+      label: "Live Campuses",
+      value: stats?.totalCampuses || "0",
+      subValue: "Network Active",
       icon: <Building2 size={24} />,
-      gradient: "from-indigo-500 to-indigo-600",
-      shadow: "shadow-indigo-100",
+      gradient: "from-violet-500 to-purple-600",
+      shadow: "shadow-purple-100",
     },
     {
-      label: "Monthly Revenue",
-      value: `৳${stats?.revenue?.toLocaleString() || 0}`,
-      subValue: "Collected this month",
+      label: "Revenue (MTD)",
+      value: `৳${stats?.revenue?.toLocaleString() || "0"}`,
+      subValue: "Current Collection",
       icon: <CreditCard size={24} />,
-      gradient: "from-emerald-500 to-emerald-600",
+      gradient: "from-emerald-500 to-teal-600",
       shadow: "shadow-emerald-100",
     },
     {
       label: "Avg. Attendance",
-      value: `${stats?.attendance || 0}%`,
-      subValue: "Overall daily average",
+      value: `${stats?.attendanceRate || 0}%`,
+      subValue: "System Average",
       icon: <Activity size={24} />,
-      gradient: "from-amber-500 to-amber-600",
-      shadow: "shadow-amber-100",
+      gradient: "from-orange-500 to-amber-600",
+      shadow: "shadow-orange-100",
     },
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Dynamic Header Info [cite: 2025-10-11] */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-            System Overview
+    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+      {/* 1. Dynamic Context Header [cite: 2025-10-11] */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white/40 backdrop-blur-md p-8 rounded-[3rem] border border-white/60 shadow-sm">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-indigo-600">
+            <Layers size={18} className="animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-[0.3em]">
+              Operational Intel
+            </span>
+          </div>
+          <h2 className="text-4xl font-black text-slate-800 tracking-tight">
+            Institutional <span className="text-indigo-600">Pulse</span>
           </h2>
-          <p className="text-sm text-slate-500 font-medium">
-            Real-time analytics for{" "}
-            <span className="text-indigo-600 font-bold">
-              {activeCampus?.name || "All Branches"}
+          <p className="text-sm text-slate-500 font-medium italic">
+            Monitoring{" "}
+            <span className="font-bold text-slate-700">
+              {activeCampus?.name || "Global Network"}
             </span>
           </p>
         </div>
-        <div className="px-4 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center gap-2">
-          <TrendingUp size={16} className="text-emerald-500" />
-          <span className="text-xs font-black uppercase tracking-widest text-slate-400">
-            Session {activeYear?.year}
-          </span>
+
+        <div className="flex gap-3">
+          <div className="px-5 py-3 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
+            <Calendar size={18} className="text-indigo-500" />
+            <div className="text-left">
+              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                Active Session
+              </p>
+              <p className="text-xs font-black text-slate-700">
+                {activeYear?.year || "N/A"}
+              </p>
+            </div>
+          </div>
+          <div className="px-5 py-3 bg-emerald-50 rounded-2xl border border-emerald-100 shadow-sm flex items-center gap-3">
+            <TrendingUp size={18} className="text-emerald-500" />
+            <div className="text-left">
+              <p className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">
+                System Status
+              </p>
+              <p className="text-xs font-black text-emerald-700 uppercase">
+                Online
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Responsive Grid [cite: 2025-10-11] */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* 2. Dynamic Metric Grid [cite: 2025-10-11] */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
         {loading
           ? Array(4)
               .fill(0)
@@ -88,61 +107,107 @@ const SuperAdminStats = () => {
           : cards.map((card, i) => (
               <div
                 key={i}
-                className="group bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
+                className="group bg-white p-8 rounded-[3.5rem] border border-slate-50 shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 relative overflow-hidden"
               >
-                <div className="flex justify-between items-start mb-4">
+                <div className="absolute -right-4 -top-4 w-24 h-24 bg-slate-50 rounded-full group-hover:scale-150 transition-transform duration-700 opacity-50" />
+
+                <div className="flex justify-between items-start mb-8 relative z-10">
                   <div
-                    className={`p-4 rounded-2xl text-white bg-gradient-to-br ${card.gradient} shadow-lg ${card.shadow} group-hover:scale-110 transition-transform duration-500`}
+                    className={`p-5 rounded-3xl text-white bg-gradient-to-br ${card.gradient} shadow-2xl ${card.shadow} group-hover:rotate-6 transition-all duration-500`}
                   >
                     {card.icon}
                   </div>
-                  <ArrowUpRight
-                    size={20}
-                    className="text-slate-300 group-hover:text-indigo-500 transition-colors"
-                  />
+                  <div className="p-2 bg-slate-50 rounded-xl text-slate-300 group-hover:text-indigo-500 group-hover:bg-indigo-50 transition-all">
+                    <ArrowUpRight size={20} />
+                  </div>
                 </div>
 
-                <div>
-                  <h3 className="text-3xl font-black text-slate-800 tracking-tighter mb-1">
+                <div className="relative z-10">
+                  <h3 className="text-4xl font-black text-slate-800 tracking-tighter mb-1">
                     {card.value}
                   </h3>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">
                     {card.label}
                   </p>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-slate-50">
-                  <p className="text-[10px] font-bold text-slate-400 italic">
+                <div className="mt-4 pt-5 border-t border-slate-50 flex items-center justify-between relative z-10">
+                  <span className="text-[10px] font-bold text-slate-400 italic">
                     {card.subValue}
-                  </p>
+                  </span>
+                  <div className="w-8 h-1 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="w-2/3 h-full bg-indigo-500" />
+                  </div>
                 </div>
               </div>
             ))}
       </div>
 
-      {/* Chart Section with Responsive Padding [cite: 2025-10-11] */}
-      <div className="bg-white p-6 md:p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/40">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-2 h-8 bg-indigo-600 rounded-full" />
-          <h3 className="text-xl font-black text-slate-800 tracking-tight">
-            Enrollment Trends
-          </h3>
+      {/* 3. Trends & Analytics Section [cite: 2025-10-11] */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 bg-white p-10 rounded-[3.5rem] border border-slate-100 shadow-2xl shadow-slate-200/30">
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center gap-4">
+              <div className="w-3 h-10 bg-indigo-600 rounded-full" />
+              <div>
+                <h3 className="text-2xl font-black text-slate-800 tracking-tight">
+                  Growth Projection
+                </h3>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">
+                  Enrollment over time
+                </p>
+              </div>
+            </div>
+            <select className="bg-slate-50 border-none rounded-xl px-4 py-2 text-xs font-black text-slate-500 outline-none">
+              <option>Last 6 Months</option>
+              <option>Full Year</option>
+            </select>
+          </div>
+          <div className="h-[420px] w-full">
+            <EnrollmentChart data={stats?.chartData || []} />
+          </div>
         </div>
-        <div className="h-[400px] w-full">
-          <EnrollmentChart data={stats?.chartData || []} />
+
+        {/* 4. Quick Actions / Context Alert [cite: 2025-10-11] */}
+        <div className="bg-slate-900 p-10 rounded-[3.5rem] text-white shadow-2xl shadow-indigo-200/20 flex flex-col justify-between relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -mr-32 -mt-32 blur-3xl" />
+          <div className="relative z-10">
+            <h3 className="text-2xl font-black mb-2 tracking-tight">
+              Active Insight
+            </h3>
+            <p className="text-slate-400 text-sm font-medium leading-relaxed">
+              The system is currently optimized for the{" "}
+              <span className="text-indigo-400 font-bold">
+                {activeYear?.year}
+              </span>{" "}
+              session. Data is being aggregated from all{" "}
+              <span className="text-indigo-400 font-bold">
+                {stats?.totalCampuses || 0}
+              </span>{" "}
+              campuses.
+            </p>
+          </div>
+
+          <div className="space-y-4 relative z-10 mt-8">
+            <button className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">
+              Download Full Report
+            </button>
+            <p className="text-[10px] text-center text-slate-500 font-bold uppercase tracking-tighter">
+              Last synced: Just now
+            </p>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-// Skeleton Loader for polished UX [cite: 2025-10-11]
 const StatSkeleton = () => (
-  <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 animate-pulse space-y-4">
-    <div className="w-14 h-14 bg-slate-100 rounded-2xl" />
-    <div className="space-y-2">
-      <div className="h-8 w-24 bg-slate-100 rounded-lg" />
-      <div className="h-3 w-32 bg-slate-100 rounded-md" />
+  <div className="bg-white p-8 rounded-[3.5rem] border border-slate-50 animate-pulse space-y-6 shadow-xl shadow-slate-100">
+    <div className="w-16 h-16 bg-slate-100 rounded-3xl" />
+    <div className="space-y-3">
+      <div className="h-10 w-28 bg-slate-100 rounded-xl" />
+      <div className="h-4 w-40 bg-slate-100 rounded-lg" />
     </div>
   </div>
 );

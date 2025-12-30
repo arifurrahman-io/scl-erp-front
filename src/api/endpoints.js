@@ -37,6 +37,7 @@ export const ENDPOINTS = {
     // Updated Section Endpoints
     SECTIONS_BASE: "/settings/sections",
     SECTIONS_BY_CAMPUS: (campusId) => `/settings/sections/${campusId}`,
+    SECTION_SINGLE: (id) => `/settings/sections/${id}`,
 
     CLASSES: (campusId) => `/settings/classes/${campusId}`,
     CLASS_BASE: "/settings/classes",

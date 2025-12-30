@@ -81,7 +81,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           label: "Attendance",
           icon: <ClipboardCheck size={20} />,
           path: "/attendance",
-          roles: ["CLASS_TEACHER", "TEACHER", "SUPER_ADMIN"], // Logic inside handles restriction
+          roles: ["CLASS_TEACHER", "SUPER_ADMIN"], // Logic inside handles restriction
         },
       ],
     },
@@ -104,7 +104,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           label: "Report Cards",
           icon: <FileText size={20} />,
           path: "/exams/report-cards",
-          roles: ["SUPER_ADMIN", "ADMIN", "TEACHER", "CLASS_TEACHER"],
+          roles: ["SUPER_ADMIN", "ADMIN"],
         },
       ],
     },
