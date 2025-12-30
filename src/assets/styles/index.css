@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --brand-primary: #4f46e5; /* Indigo 600 */
+    --bg-main: #f8fafc; /* Slate 50 */
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+    font-family: "Inter", system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* Custom Scrollbar for a "Premium" feel */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
+  }
+}
+
+@layer components {
+  /* Dynamic form inputs used across the ERP */
+  .form-input {
+    @apply w-full px-4 py-2 bg-white border border-slate-200 rounded-xl 
+           focus:ring-2 focus:ring-indigo-500 focus:border-transparent 
+           outline-none transition-all duration-200 text-sm;
+  }
+
+  /* Glassmorphism effect for Dashboards */
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+}
